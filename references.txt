@@ -1,0 +1,6 @@
+Q1:
+https://stackoverflow.com/questions/16488278/how-to-check-if-a-variable-is-an-integer-or-a-string/16488375
+https://thispointer.com/different-ways-to-remove-a-key-from-dictionary-in-python/
+https://www.quora.com/How-do-I-remove-an-item-from-a-python-list
+https://stackoverflow.com/questions/1024847/add-new-keys-to-a-dictionary
+
