@@ -17,3 +17,6 @@ https://stackoverflow.com/questions/3182183/creating-a-list-of-objects-in-python
 https://stackoverflow.com/questions/8234445/python-format-output-string-right-alignment
 https://www.geeksforgeeks.org/understanding-python-pickling-example/
 https://stackoverflow.com/questions/12761991/how-to-use-append-with-pickle-in-python
+https://stackoverflow.com/questions/9202224/getting-command-line-password-input-in-python
+https://stackoverflow.com/questions/23979184/how-to-know-if-a-user-has-pressed-the-enter-key-using-python
+https://www.geeksforgeeks.org/ternary-operator-in-python/
