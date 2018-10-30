@@ -1,3 +1,5 @@
+import pickle
+
 EXIT=-1
 CUSTOMER=0
 ADMIN=1
@@ -31,9 +33,9 @@ def admin_run():
     admin_menu[3] = "Delete Products"
     admin_functions[3] = a.DelProducts
 
-    # admin_menu[4] = "Modify Products"
-    # admin_functions[4] = a.ModifyProducts
-    #
+    admin_menu[4] = "Modify Products"
+    admin_functions[4] = a.ModifyProducts
+ 
     # admin_menu[5] = "Make Shipment"
     # admin_functions[5] = a.MakeShipment
     #
@@ -84,14 +86,51 @@ def YesNoGet(question):
         r = input("{0} (y/n) ? ".format(question))
     return r
 
+def FloatingPointInputGet(msg):
+    f=0.0
+    while True:
+        try:
+            ff = input(msg)
+            if ff == "":
+                break
+            f = float(ff)
+            break
+        except ValueError:
+            ErrorPrint("Only Floating Point values accepted... please try again!!\n")
+    return f
+
+
+
 class Products:
-    def __init__(self, id, name):
+    def __init__(self, id, name, price, group, subgroup):
         self.id = id
         self.name = name
+        self.price = price
+        self.group = group
+        self.subgroup = subgroup
+
+    def HeadingPrint():
+        BoldPrint ("\n|{0:^10}|{1:^15}|{2:^15}|{3:^15}|{4:^15}\n".format("Prod ID", "Name", "Price (Rs.)", "Group", "Subgroup"))
+
+    HeadingPrint = staticmethod(HeadingPrint)
+
+    def Modify(self):
+        print ("\nProvide Details (press \"Enter\" to skip.)")
+        name = input("Enter product name: ")
+        price = FloatingPointInputGet("Enter product's price: ")
+        group = input("Enter product group: ")
+        subgroup = input("Enter product subgroup: ")
+        self.name = name if name != "" else self.name
+        self.price = price if price > 0.0 else self.price
+        self.group = group if group != "" else self.group
+        self.subgroup = subgroup if subgroup != "" else self.subgroup
 
     def __str__(self):
-        return "\033[1;{0}mProduct ID: {1}, Name: {2}\033[0m".format(PURPLE, self.id, self.name)
-
+        return "\033[1;{0}m|{1:^10}|{2:^15}|{3:^15.2f}|{4:^15}|{5:^15}\033[0m".format(PURPLE, self.id,
+                                                                                              self.name,
+                                                                                              self.price,
+                                                                                              self.group,
+                                                                                              self.subgroup)
 
 class Admin:
     def __init__(self, id, name):
@@ -100,11 +139,13 @@ class Admin:
         self.name = name
 
     def ViewProducts(self):
+        screen_clear()
         if len(products_dict) == 0:
             ErrorPrint("No products available... Please add some!!\n")
             return
 
         BoldPrint ("\nAvailable Products:\n")
+        Products.HeadingPrint()
         for p in products_dict:
             print (products_dict[p])
 
@@ -114,11 +155,17 @@ class Admin:
             if id in products_dict:
                 ErrorPrint("Product ID: {0} already exists!!... please try again\n".format(id))
                 continue
-            name = input("Enter product name: ")
-            products_dict[id] = Products(id, name)
 
-            with open("products.txt", "a") as products_file:
-                products_file.write("{0} {1}\n".format(id, name))
+            new_product = Products(id, "None", 0.0, "None", "None")
+
+            Products.HeadingPrint()
+            print (new_product)
+            new_product.Modify()
+
+            products_dict[id] = new_product
+
+            with open("products.txt", "wb") as products_file:
+                pickle.dump(products_dict, products_file)
 
             r = YesNoGet("Add another product")
 
@@ -132,14 +179,15 @@ class Admin:
             if id not in products_dict:
                 ErrorPrint ("Product ID: {0} doesn't exist!!\n".format(id))
             else:
+                Products.HeadingPrint()
                 print (products_dict[id])
-                r = YesNoGet("Delete above product")
+                print ("")
+                r = YesNoGet("Delete this product")
                 if(r == "y"):
                     del products_dict[id]
 
-                    with open("products.txt", "w") as products_file:
-                        for p in products_dict:
-                            products_file.write("{0} {1}\n".format(p, products_dict[p].name))
+                    with open("products.txt", "wb") as products_file:
+                        pickle.dump(products_dict, products_file)
 
                     SuccessPrint ("Product ID: {0} deleted!!\n".format(id))
                 else:
@@ -149,6 +197,35 @@ class Admin:
 
             if r != "y":
                 break
+
+    def ModifyProducts(self):
+        while True:
+            id = (int)(input("Enter product id to be modified: "))
+            print ("")
+            if id not in products_dict:
+                ErrorPrint ("Product ID: {0} doesn't exist!!\n".format(id))
+            else:
+                Products.HeadingPrint()
+                print (products_dict[id])
+                products_dict[id].Modify()
+
+                with open("products.txt", "wb") as products_file:
+                    pickle.dump(products_dict, products_file)
+
+            r = YesNoGet("\nModify another product")
+
+            if r != "y":
+                break
+                
+
+class Customer:
+    def __init__(self, id, name, addr, phone):
+        "constructor for Admin class"
+        self.id = id
+        self.name = name
+        self.addr = addr
+        self.phone = phone
+
 
 
 def DictPrintAndInputGet(_dict):
@@ -198,10 +275,10 @@ def AdminMenuPrint():
 
 def ProductsRead():
     try:
-        with open("products.txt", "r") as products_file:
-            for line in products_file:
-                info = line.split()
-                products_dict[(int)(info[0])] = Products((int)(info[0]), info[1])
+        with open("products.txt", "rb") as products_file:
+            global products_dict
+            products_dict = pickle.load(products_file)
+
     except FileNotFoundError:
         pass
         
@@ -212,8 +289,12 @@ if __name__ == '__main__':
     ProductsRead()
 
     while(1):
+        screen_clear()
         x = MainMenuPrint()
         if(EXIT == x):
             break
 
+        screen_clear()
         main_functions[x]()
+
+    screen_clear()
