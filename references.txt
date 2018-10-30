@@ -3,4 +3,14 @@ https://stackoverflow.com/questions/16488278/how-to-check-if-a-variable-is-an-in
 https://thispointer.com/different-ways-to-remove-a-key-from-dictionary-in-python/
 https://www.quora.com/How-do-I-remove-an-item-from-a-python-list
 https://stackoverflow.com/questions/1024847/add-new-keys-to-a-dictionary
-
+https://stackoverflow.com/questions/4706499/how-do-you-append-to-a-file
+https://www.guru99.com/reading-and-writing-files-in-python.html
+https://stackoverflow.com/questions/713794/catching-an-exception-while-using-a-python-with-statement
+https://www.101computing.net/category/html-css-learning-resources/
+https://www.101computing.net/python-reading-a-text-file/
+http://ozzmaker.com/add-colour-to-text-in-python/
+https://www.tutorialspoint.com/python/dictionary_len.htm
+https://www.pythoncentral.io/how-to-sort-python-dictionaries-by-key-or-value/
+https://softwareengineering.stackexchange.com/questions/182093/why-store-a-function-inside-a-python-dictionary
+https://www.pythonforbeginners.com/dictionary/how-to-use-dictionaries-in-python/
+https://stackoverflow.com/questions/3182183/creating-a-list-of-objects-in-python

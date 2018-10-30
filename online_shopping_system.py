@@ -16,6 +16,9 @@ main_menu = {
 admin_menu = {}
 admin_functions = {}
 
+customer_menu = {}
+customer_functions = {}
+
 def admin_run():
     a = Admin(1, "admin")
 
@@ -44,6 +47,9 @@ def admin_run():
 
         admin_functions[x]()
 
+
+#def customer_run():
+#    a = 
 
 main_functions = {
                     1: admin_run
@@ -110,6 +116,10 @@ class Admin:
                 continue
             name = input("Enter product name: ")
             products_dict[id] = Products(id, name)
+
+            with open("products.txt", "a") as products_file:
+                products_file.write("{0} {1}\n".format(id, name))
+
             r = YesNoGet("Add another product")
 
             if r != "y":
@@ -126,6 +136,11 @@ class Admin:
                 r = YesNoGet("Delete above product")
                 if(r == "y"):
                     del products_dict[id]
+
+                    with open("products.txt", "w") as products_file:
+                        for p in products_dict:
+                            products_file.write("{0} {1}\n".format(p, products_dict[p].name))
+
                     SuccessPrint ("Product ID: {0} deleted!!\n".format(id))
                 else:
                     ErrorPrint ("Product ID: {0} not deleted!!\n".format(id))
@@ -181,9 +196,20 @@ def AdminMenuPrint():
     print ("==============================================")
     return DictPrintAndInputGet(admin_menu)
 
+def ProductsRead():
+    try:
+        with open("products.txt", "r") as products_file:
+            for line in products_file:
+                info = line.split()
+                products_dict[(int)(info[0])] = Products((int)(info[0]), info[1])
+    except FileNotFoundError:
+        pass
+        
 
 if __name__ == '__main__':
     screen_clear()
+
+    ProductsRead()
 
     while(1):
         x = MainMenuPrint()
