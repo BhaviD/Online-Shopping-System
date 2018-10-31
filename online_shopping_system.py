@@ -81,6 +81,7 @@ class Admin:
         self.id = id
         self.name = name
         self.passwd = passwd
+        Admin.admin_dict[self.id] = self
 
     def Read():
         try:
@@ -148,19 +149,6 @@ class Admin:
         pswd = utils.PasswdInputMatch("Enter password: ", Admin.admin_dict[id].passwd)
         if (pswd == ""):
             return
-        #try_count = 1
-        #max_try_count = 3
-        #pswd = getpass.getpass("Enter password: ")
-        #while (pswd != Admin.admin_dict[id].passwd):
-        #    try_count += 1
-        #    if (try_count > max_try_count):
-        #        utils.ErrorPrint ("Max number of tries reached!!\n")
-        #        break
-        #    utils.ErrorPrint("Incorrect Password... please try again!!\n")
-        #    pswd = getpass.getpass("Enter password: ")
-
-        #if(try_count > max_try_count):
-        #    return
 
         while(True):
             x = Admin.OptionMenuPrint()
@@ -185,12 +173,8 @@ class Admin:
 
             name = input("Enter admin name: ")
             pswd = utils.NewPasswdGet("Enter password: ")
-            #pswd = getpass.getpass("Enter password: ")
-            #while (len(pswd) < 8):
-            #    utils.ErrorPrint("Minimum length of password should be 8... please try again!!\n")
-            #    pswd = getpass.getpass("Enter password:")
-
-            Admin.admin_dict[id] = Admin(id, name, pswd)
+            
+            Admin(id, name, pswd)       # constructor inserts the new admin object in the dict
 
             with open("admins.file", "wb") as admins_file:
                 pickle.dump(Admin.admin_dict, admins_file)
@@ -295,8 +279,12 @@ class Admin:
     ModifyProducts = staticmethod(ModifyProducts)
 
 
-
 class Customer:
+    login_menu = {}
+    login_functions = {}
+
+    option_menu = {}
+
     customer_dict = {}
 
     def __init__(self, id, name, addr, phone, passwd):
@@ -309,6 +297,13 @@ class Customer:
         self.products_bought_list = []
         Customer.customer_dict[self.id] = self
 
+        self.option_functions[1] = BuyProducts
+        self.option_functions[2] = Admin.ViewProducts
+        #self.option_functions[3] = MakePayment
+        #self.option_functions[4] = AddToCart
+        #self.option_functions[5] = DeleteFromCart
+
+
     def __str__(self):
         return "\033[1;{0}m{1:<15}: {2}\n{3:<15}: {4}\n{5:<15}: {6}\n\
                     \r{7:<15}: {8}\033[0m".format(utils.PURPLE,
@@ -316,6 +311,65 @@ class Customer:
                                                   "Name",    self.name,
                                                   "Address", self.addr,
                                                   "Phone",   self.phone)
+
+    def LoginMenuPrint():
+        print ("\n==============================================")
+        utils.BoldPrint ("Customer Login\n")
+        print ("==============================================")
+        return utils.DictPrintAndInputGet(Customer.login_menu)
+
+
+    def OptionMenuPrint():
+        print ("\n==============================================")
+        utils.BoldPrint ("Customer Options\n")
+        print ("==============================================")
+        return utils.DictPrintAndInputGet(Customer.option_menu)
+
+
+    def Run():
+        Customer.login_menu[1] = "Login"
+
+        Customer.login_functions[1] = Customer.Login
+
+        Customer.option_menu[1] = "Buy Products"
+        Customer.option_menu[2] = "View Products"
+        Customer.option_menu[3] = "Make Payment"
+        Customer.option_menu[4] = "Add to Cart"
+        Customer.option_menu[5] = "Delete from Cart"
+
+
+        while(True):
+            x = Customer.LoginMenuPrint()
+            if (EXIT == x):
+                break
+
+            utils.ColorTextPrint(utils.BLUE, "\n>> {0} <<".format(Customer.login_menu[x]))
+            Customer.login_functions[x]()
+
+
+    def Login():
+        if (len(Customer.customer_dict) == 0):
+            utils.ErrorPrint("\nNo record of customers... please register!!\n")
+            return
+
+        id = (int)(input("\nEnter customer id: "))
+        if id not in Customer.customer_dict:
+            utils.ErrorPrint("Customer ID: {0} doesn't exist!!... please try again\n".format(id))
+            return
+
+        pswd = utils.PasswdInputMatch("Enter password: ", Customer.customer_dict[id].passwd)
+        if (pswd == ""):        # max tries of incorrect password reached
+            return
+
+        while(True):
+            current_customer = Customer.customer_dict[id]
+            x = current_customer.OptionMenuPrint()
+            if (EXIT == x):
+                break
+
+            utils.ColorTextPrint(utils.BLUE, "\n>> {0} <<".format(Customer.option_menu[x]))
+            current_customer.option_functions[x]()
+
 
     def Modify(self):
         print ("\nProvide Details (press \"Enter\" to skip.)")
@@ -407,8 +461,8 @@ def MainMenuPrint():
 
 main_functions = {
                     1: Admin.Run,
+                    2: Customer.Run,
                     3: Guest.Run
-                    #2: customer_run
                  }
 
 

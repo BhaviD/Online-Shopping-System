@@ -14,13 +14,13 @@ def screen_clear():
     cursor_move(0, 0)
 
 def ErrorPrint(msg):
-    print ("\033[1;{0}m{1}\033[0m".format(RED, msg), end='', flush=True)
+    print ("\033[0;{0}m{1}\033[0m".format(RED, msg), end='', flush=True)
 
 def SuccessPrint(msg):
-    print ("\033[1;{0}m{1}\033[0m".format(GREEN, msg), end='')
+    print ("\033[0;{0}m{1}\033[0m".format(GREEN, msg), end='')
 
 def ColorTextPrint(color, msg):
-    print ("\033[1;{0}m{1}\033[0m".format(color, msg), end='')
+    print ("\033[0;{0}m{1}\033[0m".format(color, msg), end='')
 
 def BoldPrint(msg):
     print ("\033[1;{0}m{1}\033[0m".format(BLACK, msg), end='')
@@ -71,7 +71,7 @@ def DictPrintAndInputGet(_dict):
         print (" : {0}".format(_dict[a]))
 
     BoldPrint("-1")
-    print (": Return")
+    print (": Go Back")
     print ("==============================================")
 
     str_x = input(">> ")
@@ -86,7 +86,7 @@ def DictPrintAndInputGet(_dict):
             print (" : {0}".format(_dict[a]))
 
         BoldPrint("-1")
-        print (": Return")
+        print (": Go Back")
         print ("==============================================")
 
         str_x = input(">> ")
