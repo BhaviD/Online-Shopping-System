@@ -1,0 +1,7 @@
+
+1) To be able to delete/add a single entry to the file using pickle,
+   instead of dumping the entire dictionary everytime an update is made to an entry in the
+   dictionary.
+
+2) Adding or deleting option_functions of class Customer, requires the database of customers to be
+    reconstructed. Ideally, the database should not need to be constructed again.
