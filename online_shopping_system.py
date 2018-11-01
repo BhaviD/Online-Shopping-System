@@ -347,7 +347,7 @@ class Cart:
 
             new_quantity = utils.IntegerInputGet("Decrease the Quantity to: ")
             if (new_quantity > curr_quantity):
-                ErrorPrint("Use \"Add to Cart\" option to increase the quantity\n")
+                utils.ErrorPrint("Use \"Add to Cart\" option to increase the quantity\n")
                 return False
 
             if (new_quantity == curr_quantity):
