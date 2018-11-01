@@ -20,7 +20,7 @@ customer_functions = {}
 class Products:
     products_dict = {}
 
-    def __init__(self, id, name, price, group, subgroup):
+    def __init__(self, id, name = "None", price = 0.0, group = "None", subgroup = "None"):
         self.id = id
         self.name = name
         self.price = price
@@ -35,6 +35,7 @@ class Products:
                                                                                       self.price,
                                                                                       self.group,
                                                                                       self.subgroup)
+                                                                                      #(float)("{:,}".format(self.price)),
 
     def Read():
         try:
@@ -132,16 +133,16 @@ class Admin:
             if (EXIT == x):
                 break
 
-            utils.ColorTextPrint(utils.BLUE, "\n>> {0} <<".format(Admin.login_menu[x]))
+            utils.ColorTextPrint(utils.BLUE, "\n>> {0} <<\n".format(Admin.login_menu[x]))
             Admin.login_functions[x]()
 
 
     def Login():
         if (len(Admin.admin_dict) == 0):
-            utils.ErrorPrint("\nNo record of admins... please register a few!!\n")
+            utils.ErrorPrint("No record of admins... please register a few!!\n")
             return
 
-        id = (int)(input("\nEnter admin id: "))
+        id = (int)(input("Enter admin id: "))
         if id not in Admin.admin_dict:
             utils.ErrorPrint("Admin ID: {0} doesn't exist!!... please try again\n".format(id))
             return
@@ -155,7 +156,7 @@ class Admin:
             if (EXIT == x):
                 break
 
-            utils.ColorTextPrint(utils.BLUE, "\n>> {0} <<".format(Admin.option_menu[x]))
+            utils.ColorTextPrint(utils.BLUE, "\n>> {0} <<\n".format(Admin.option_menu[x]))
             Admin.option_functions[x]()
 
 
@@ -166,7 +167,7 @@ class Admin:
             return
 
         while(True):
-            id = (int)(input("\nEnter Admin id: "))
+            id = (int)(input("Enter Admin id: "))
             if id in Admin.admin_dict:
                 utils.ErrorPrint("Admin ID: {0} already exist!!... please try again\n".format(id))
                 continue
@@ -197,12 +198,12 @@ class Admin:
 
     def AddProducts():
         while True:
-            id = (int)(input("\nEnter product id: "))
+            id = (int)(input("Enter product id: "))
             if id in Products.products_dict:
                 utils.ErrorPrint("Product ID: {0} already exists!!... try again.\n".format(id))
                 continue
 
-            new_product = Products(id, "None", 0.0, "None", "None")
+            new_product = Products(id)
 
             Products.HeadingPrint()
             print (new_product)
@@ -223,7 +224,7 @@ class Admin:
 
     def DelProducts():
         while True:
-            id = (int)(input("\nEnter product id to be deleted: "))
+            id = (int)(input("Enter product id to be deleted: "))
             print ("")
             if id not in Products.products_dict:
                 utils.ErrorPrint ("Product ID: {0} doesn't exist!!\n".format(id))
@@ -250,7 +251,7 @@ class Admin:
 
     def ModifyProducts():
         while True:
-            id = (int)(input("\nEnter product id to be modified: "))
+            id = (int)(input("Enter product id to be modified: "))
             print ("")
             if id not in Products.products_dict:
                 utils.ErrorPrint ("Product ID: {0} doesn't exist!!\n".format(id))
@@ -279,6 +280,48 @@ class Admin:
     ModifyProducts = staticmethod(ModifyProducts)
 
 
+
+class Cart:
+    def __init__(self):
+        self.num_of_products = 0
+        self.products_price_dict = {}
+        self.total_price = 0.0
+
+    def AddProduct(self, prod_id):
+        if prod_id in self.products_price_dict:
+            utils.ErrorPrint("Product ID {0} already exists in your cart!!\n".format(prod_id))
+            return False
+
+        self.products_price_dict[prod_id] = Products.products_dict[prod_id].price
+        self.total_price += self.products_price_dict[prod_id]
+        utils.SuccessPrint("Product ID {0} added to your cart!!".format(prod_id))
+        return True
+
+
+    def DeleteProduct(self, prod_id):
+        if prod_id not in self.products_price_dict:
+            utils.ErrorPrint("Product ID {0} doesn't exist in your cart!!\n".format(prod_id))
+            return False
+
+        self.total_price -= self.products_price_dict[prod_id]
+        del self.products_price_dict[prod_id]
+        utils.SuccessPrint("Product ID {0} deleted from your cart!!".format(prod_id))
+        return True
+
+
+    def Print(self):
+        if len(self.products_price_dict) == 0:
+            utils.ErrorPrint("Your Cart is Empty!!\n")
+            return
+
+        Products.HeadingPrint()
+        for prod_id in sorted(self.products_price_dict):
+            print (Products.products_dict[prod_id])
+
+        utils.BoldPrint ("\nTotal Price: {0:.2f}\n".format(self.total_price))
+
+
+
 class Customer:
     login_menu = {}
     login_functions = {}
@@ -287,21 +330,23 @@ class Customer:
 
     customer_dict = {}
 
-    def __init__(self, id, name, addr, phone, passwd):
+    def __init__(self, id, name = "None", addr = "None", phone = "None", passwd = "None"):
         "constructor for Admin class"
         self.id = id
         self.name = name
         self.addr = addr
         self.phone = phone
         self.passwd = passwd
-        self.products_bought_list = []
+        self.products_bought_dict = {}
+        self.cart = Cart()
         Customer.customer_dict[self.id] = self
 
-        self.option_functions[1] = BuyProducts
-        self.option_functions[2] = Admin.ViewProducts
-        #self.option_functions[3] = MakePayment
-        #self.option_functions[4] = AddToCart
-        #self.option_functions[5] = DeleteFromCart
+        self.option_functions = {}
+        self.option_functions[1] = Admin.ViewProducts
+        self.option_functions[2] = self.MakePayment
+        self.option_functions[3] = self.AddToCart
+        self.option_functions[4] = self.DeleteFromCart
+        self.option_functions[5] = self.ViewCart
 
 
     def __str__(self):
@@ -331,11 +376,11 @@ class Customer:
 
         Customer.login_functions[1] = Customer.Login
 
-        Customer.option_menu[1] = "Buy Products"
-        Customer.option_menu[2] = "View Products"
-        Customer.option_menu[3] = "Make Payment"
-        Customer.option_menu[4] = "Add to Cart"
-        Customer.option_menu[5] = "Delete from Cart"
+        Customer.option_menu[1] = "View Products"
+        Customer.option_menu[2] = "Make Payment"
+        Customer.option_menu[3] = "Add to Cart"
+        Customer.option_menu[4] = "Delete from Cart"
+        Customer.option_menu[5] = "View Cart"
 
 
         while(True):
@@ -343,31 +388,31 @@ class Customer:
             if (EXIT == x):
                 break
 
-            utils.ColorTextPrint(utils.BLUE, "\n>> {0} <<".format(Customer.login_menu[x]))
+            utils.ColorTextPrint(utils.BLUE, "\n>> {0} <<\n".format(Customer.login_menu[x]))
             Customer.login_functions[x]()
 
 
     def Login():
         if (len(Customer.customer_dict) == 0):
-            utils.ErrorPrint("\nNo record of customers... please register!!\n")
+            utils.ErrorPrint("No record of customers... please register!!\n")
             return
 
-        id = (int)(input("\nEnter customer id: "))
+        id = (int)(input("Enter customer id: "))
         if id not in Customer.customer_dict:
             utils.ErrorPrint("Customer ID: {0} doesn't exist!!... please try again\n".format(id))
             return
 
-        pswd = utils.PasswdInputMatch("Enter password: ", Customer.customer_dict[id].passwd)
-        if (pswd == ""):        # max tries of incorrect password reached
+        current_customer = Customer.customer_dict[id]
+        if ( (current_customer.passwd != "None") and
+             (False == utils.PasswdInputMatch("Enter password: ", current_customer.passwd)) ):
             return
 
         while(True):
-            current_customer = Customer.customer_dict[id]
-            x = current_customer.OptionMenuPrint()
+            x = Customer.OptionMenuPrint()
             if (EXIT == x):
                 break
 
-            utils.ColorTextPrint(utils.BLUE, "\n>> {0} <<".format(Customer.option_menu[x]))
+            utils.ColorTextPrint(utils.BLUE, "\n>> {0} <<\n".format(Customer.option_menu[x]))
             current_customer.option_functions[x]()
 
 
@@ -376,9 +421,13 @@ class Customer:
         name = input("Enter customer name: ")
         addr = input("Enter customer address: ")
         phone = utils.MobileNumberGet("Enter customer mobile number: ")
+        passwd = utils.NewPasswdGet("Enter password: ")
+
         self.name = name if name != "" else self.name
         self.addr = addr if addr != "" else self.addr
         self.phone = phone if phone != "" else self.phone
+        self.passwd = passwd if passwd != "" else self.passwd
+
 
     def Read():
         try:
@@ -390,11 +439,53 @@ class Customer:
         except FileNotFoundError:
             pass
 
-    def BuyProducts(self):
-        print ("BuyProducts")
 
+
+    def MakePayment(self):
+        print("Make Payment")
+
+
+    def AddToCart(self):
+        while True:
+            id = (int)(input("Enter product id: "))
+            print ("")
+            if id not in Products.products_dict:
+                utils.ErrorPrint ("Product ID: {0} doesn't exist!!\n".format(id))
+            else:
+                if True == self.cart.AddProduct(id):
+                    with open("customer.file", "wb") as customer_file:
+                        pickle.dump(Customer.customer_dict, customer_file)
+
+            r = utils.YesNoGet("\nAdd another product to cart?")
+
+            if r != "y":
+                break
+
+
+    def DeleteFromCart(self):
+        while True:
+            id = (int)(input("Enter product id: "))
+            print ("")
+            if id not in Products.products_dict:
+                utils.ErrorPrint ("Product ID: {0} doesn't exist!!\n".format(id))
+            else:
+                if True == self.cart.DeleteProduct(id):
+                    with open("customer.file", "wb") as customer_file:
+                        pickle.dump(Customer.customer_dict, customer_file)
+
+            r = utils.YesNoGet("\nDelete another product from cart?")
+
+            if r != "y":
+                break
+
+
+
+    def ViewCart(self):
+        self.cart.Print()
+        
 
     Read = staticmethod(Read)
+
 
 
 class Guest:
@@ -416,7 +507,7 @@ class Guest:
             if (EXIT == x):
                 break
 
-            utils.ColorTextPrint(utils.BLUE, "\n>> {0} <<".format(Guest.option_menu[x]))
+            utils.ColorTextPrint(utils.BLUE, "\n>> {0} <<\n".format(Guest.option_menu[x]))
             Guest.option_functions[x]()
 
 
@@ -428,12 +519,11 @@ class Guest:
 
 
     def Register():
-        print("")
         if Guest.guest_number in Customer.customer_dict:
             utils.ErrorPrint("Guest ID {0} is already registered!!\n".format(Guest.guest_number))
             return
 
-        new_customer = Customer(Guest.guest_number, "None", "None", "None")
+        new_customer = Customer(Guest.guest_number)
 
         print (new_customer)
         new_customer.Modify()

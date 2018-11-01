@@ -98,12 +98,11 @@ def DictPrintAndInputGet(_dict):
 
 def NewPasswdGet(msg):
     pswd = getpass.getpass(msg)
-    while (len(pswd) < 8):
+    while (pswd != "" and len(pswd) < 8):
         ErrorPrint("Minimum length of password should be 8... please try again!!\n")
         pswd = getpass.getpass(msg)
 
     return pswd
-
 
 def PasswdInputMatch(msg, correct_passwd):
     try_count = 1
@@ -114,11 +113,11 @@ def PasswdInputMatch(msg, correct_passwd):
         try_count += 1
         if (try_count > max_try_count):
             ErrorPrint ("Max number of tries reached!!\n")
-            return ""
+            return False
 
         ErrorPrint("Incorrect Password... please try again!!\n")
         pswd = getpass.getpass(msg)
 
-    return pswd
+    return True
 
 
