@@ -45,12 +45,14 @@ class Products:
         except FileNotFoundError:
             pass
 
-    def HeadingPrint():
-        utils.BoldPrint ("\n|{0:^10}|{1:^15}|{2:^15}|{3:^15}|{4:^15}|\n".format("Prod ID",
+    def HeadingPrint(skip_newline = False):
+        utils.BoldPrint ("\n|{0:^10}|{1:^15}|{2:^15}|{3:^15}|{4:^15}|".format("Prod ID",
                                                                                 "Name",
                                                                                 "Price (Rs.)",
                                                                                 "Group",
                                                                                 "Subgroup"))
+        if (skip_newline == False):
+            print ("")
 
     def Modify(self):
         print ("\nProvide Details (press \"Enter\" to skip.)")
@@ -118,15 +120,15 @@ class Admin:
         Admin.option_menu[2] = "Add Products"
         Admin.option_menu[3] = "Delete Products"
         Admin.option_menu[4] = "Modify Products"
-        #Admin.option_menu[5] = "Make Shipment"
-        #Admin.option_menu[6] = "Confirm Delivery"
+        Admin.option_menu[5] = "Make Shipment"
+        Admin.option_menu[6] = "Confirm Delivery"
 
         Admin.option_functions[1] = Admin.ViewProducts
         Admin.option_functions[2] = Admin.AddProducts
         Admin.option_functions[3] = Admin.DelProducts
         Admin.option_functions[4] = Admin.ModifyProducts
-        #Admin.option_functions[5] = Admin.MakeShipment
-        #Admin.option_functions[6] = Admin.ConfirmDelivery
+        Admin.option_functions[5] = Admin.MakeShipment
+        Admin.option_functions[6] = Admin.ConfirmDelivery
 
         while(True):
             x = Admin.LoginMenuPrint()
@@ -142,13 +144,13 @@ class Admin:
             utils.ErrorPrint("No record of admins... please register a few!!\n")
             return
 
-        id = (int)(input("Enter admin id: "))
+        id = utils.IntegerInputGet("Enter admin id: ")
         if id not in Admin.admin_dict:
             utils.ErrorPrint("Admin ID: {0} doesn't exist!!... please try again\n".format(id))
             return
 
         pswd = utils.PasswdInputMatch("Enter password: ", Admin.admin_dict[id].passwd)
-        if (pswd == ""):
+        if (pswd == False):
             return
 
         while(True):
@@ -167,7 +169,7 @@ class Admin:
             return
 
         while(True):
-            id = (int)(input("Enter Admin id: "))
+            id = utils.IntegerInputGet("Enter Admin id: ")
             if id in Admin.admin_dict:
                 utils.ErrorPrint("Admin ID: {0} already exist!!... please try again\n".format(id))
                 continue
@@ -198,7 +200,7 @@ class Admin:
 
     def AddProducts():
         while True:
-            id = (int)(input("Enter product id: "))
+            id = utils.IntegerInputGet("Enter product id: ")
             if id in Products.products_dict:
                 utils.ErrorPrint("Product ID: {0} already exists!!... try again.\n".format(id))
                 continue
@@ -208,8 +210,6 @@ class Admin:
             Products.HeadingPrint()
             print (new_product)
             new_product.Modify()
-
-            #Products.products_dict[id] = new_product
 
             with open("products.file", "wb") as products_file:
                 pickle.dump(Products.products_dict, products_file)
@@ -224,7 +224,7 @@ class Admin:
 
     def DelProducts():
         while True:
-            id = (int)(input("Enter product id to be deleted: "))
+            id = utils.IntegerInputGet("Enter product id to be deleted: ")
             print ("")
             if id not in Products.products_dict:
                 utils.ErrorPrint ("Product ID: {0} doesn't exist!!\n".format(id))
@@ -251,7 +251,7 @@ class Admin:
 
     def ModifyProducts():
         while True:
-            id = (int)(input("Enter product id to be modified: "))
+            id = utils.IntegerInputGet("Enter product id to be modified: ")
             print ("")
             if id not in Products.products_dict:
                 utils.ErrorPrint ("Product ID: {0} doesn't exist!!\n".format(id))
@@ -268,6 +268,13 @@ class Admin:
             if r != "y":
                 break
 
+
+    def MakeShipment():
+        utils.SuccessPrint("All orders have been shipped!!\n")
+
+    def ConfirmDelivery():
+        utils.SuccessPrint("All orders have reached their destinations successfully!!\n")
+
     Read = staticmethod(Read)
     LoginMenuPrint = staticmethod(LoginMenuPrint)
     OptionMenuPrint = staticmethod(OptionMenuPrint)
@@ -283,42 +290,104 @@ class Admin:
 
 class Cart:
     def __init__(self):
-        self.num_of_products = 0
-        self.products_price_dict = {}
+        #self.num_of_products = 0
+        self.products_quantity_dict = {}
         self.total_price = 0.0
 
-    def AddProduct(self, prod_id):
-        if prod_id in self.products_price_dict:
-            utils.ErrorPrint("Product ID {0} already exists in your cart!!\n".format(prod_id))
-            return False
+    def IsEmpty(self):
+        return len(self.products_quantity_dict) == 0
 
-        self.products_price_dict[prod_id] = Products.products_dict[prod_id].price
-        self.total_price += self.products_price_dict[prod_id]
+    def AddProduct(self, prod_id):
+        quantity = 0
+        product = Products.products_dict[prod_id]
+
+        if prod_id in self.products_quantity_dict:
+            utils.BoldPrint("Product ID {0} alread exits in your cart!!\n".format(prod_id))
+
+            curr_quantity = self.products_quantity_dict[prod_id]
+            utils.BoldPrint("Current Quantity: {0}\n".format(curr_quantity))
+
+            r = utils.YesNoGet("Change Quantity")
+
+            if r != "y":
+                return False
+
+            self.total_price -= curr_quantity * product.price
+            quantity = utils.IntegerInputGet("Enter new quantity: ")
+            if quantity != 0:
+                self.products_quantity_dict[prod_id] = quantity
+
+        else:
+            quantity = utils.IntegerInputGet("Enter quantity: ")
+            while (quantity == 0):
+                ErrorPrint("Quantity can't be 0... please try again!!\n")
+                quantity = utils.IntegerInputGet("Enter quantity: ")
+                
+            self.products_quantity_dict[prod_id] = quantity
+
+        self.total_price += self.products_quantity_dict[prod_id] * product.price
         utils.SuccessPrint("Product ID {0} added to your cart!!".format(prod_id))
+
+        self.Print()
         return True
 
 
     def DeleteProduct(self, prod_id):
-        if prod_id not in self.products_price_dict:
+        if prod_id not in self.products_quantity_dict:
             utils.ErrorPrint("Product ID {0} doesn't exist in your cart!!\n".format(prod_id))
             return False
 
-        self.total_price -= self.products_price_dict[prod_id]
-        del self.products_price_dict[prod_id]
+        product = Products.products_dict[prod_id]
+
+        r = utils.YesNoGet("Delete the product completely")
+
+        if(r != "y"):
+            curr_quantity = self.products_quantity_dict[prod_id]
+            utils.BoldPrint("Current Quantity: {0}\n".format(curr_quantity))
+
+            new_quantity = utils.IntegerInputGet("Decrease the Quantity to: ")
+            if (new_quantity > curr_quantity):
+                ErrorPrint("Use \"Add to Cart\" option to increase the quantity\n")
+                return False
+
+            if (new_quantity == curr_quantity):
+                return False
+
+            if (new_quantity != 0):
+                self.products_quantity_dict[prod_id] = new_quantity
+                self.total_price -= curr_quantity * product.price
+                self.total_price += new_quantity * product.price
+
+                self.Print()
+                return True
+
+        self.total_price -= self.products_quantity_dict[prod_id] * product.price
+        del self.products_quantity_dict[prod_id]
         utils.SuccessPrint("Product ID {0} deleted from your cart!!".format(prod_id))
+
+        self.Print()
         return True
 
 
+    def Clear(self):
+        self.products_quantity_dict.clear()
+        self.total_price = 0.0
+
+
     def Print(self):
-        if len(self.products_price_dict) == 0:
+        if len(self.products_quantity_dict) == 0:
             utils.ErrorPrint("Your Cart is Empty!!\n")
             return
 
-        Products.HeadingPrint()
-        for prod_id in sorted(self.products_price_dict):
-            print (Products.products_dict[prod_id])
+        utils.ColorTextPrint(utils.BLUE, "\nYour Cart:\n")
+        
+        Products.HeadingPrint(True)
+        utils.BoldPrint ("{0:^15}|\n".format("Quantity"))
+        for prod_id in sorted(self.products_quantity_dict):
+            print (Products.products_dict[prod_id], end = "")
+            print ("\033[1;{0}m{1:^15}|\033[0m".format(utils.PURPLE, self.products_quantity_dict[prod_id]))
 
-        utils.BoldPrint ("\nTotal Price: {0:.2f}\n".format(self.total_price))
+        utils.BoldPrint ("\nTotal Amount: Rs. {0:.2f}\n".format(self.total_price))
 
 
 
@@ -339,6 +408,7 @@ class Customer:
         self.passwd = passwd
         self.products_bought_dict = {}
         self.cart = Cart()
+        self.payment = Payment()
         Customer.customer_dict[self.id] = self
 
         self.option_functions = {}
@@ -347,6 +417,8 @@ class Customer:
         self.option_functions[3] = self.AddToCart
         self.option_functions[4] = self.DeleteFromCart
         self.option_functions[5] = self.ViewCart
+        self.option_functions[6] = self.AddCard
+        self.option_functions[7] = self.ProductsBoughtPrint
 
 
     def __str__(self):
@@ -381,6 +453,8 @@ class Customer:
         Customer.option_menu[3] = "Add to Cart"
         Customer.option_menu[4] = "Delete from Cart"
         Customer.option_menu[5] = "View Cart"
+        Customer.option_menu[6] = "Add Debit/Credit Card"
+        Customer.option_menu[7] = "View Products Bought"
 
 
         while(True):
@@ -397,7 +471,7 @@ class Customer:
             utils.ErrorPrint("No record of customers... please register!!\n")
             return
 
-        id = (int)(input("Enter customer id: "))
+        id = utils.IntegerInputGet("Enter customer id: ")
         if id not in Customer.customer_dict:
             utils.ErrorPrint("Customer ID: {0} doesn't exist!!... please try again\n".format(id))
             return
@@ -440,15 +514,50 @@ class Customer:
             pass
 
 
-
     def MakePayment(self):
-        print("Make Payment")
+        if self.cart.IsEmpty() == True:
+            utils.ErrorPrint("Cart is Empty!!\n")
+            return
+
+        if self.payment.MakePayment() == False:
+            utils.ErrorPrint("Payment Failed... please try again!!\n")
+        else:
+            for p in self.cart.products_quantity_dict:
+                if p in self.products_bought_dict:
+                    self.products_bought_dict[p] += self.cart.products_quantity_dict[p]
+                else:
+                    self.products_bought_dict[p] = self.cart.products_quantity_dict[p]
+
+            self.cart.Clear()
+            with open("customer.file", "wb") as customer_file:
+                pickle.dump(Customer.customer_dict, customer_file)
+
+            utils.SuccessPrint("Payment Confirmation... Thanks for Shopping with us!!\n")
+
+
+    def ProductsBoughtPrint(self):
+        if len(self.products_bought_dict) == 0:
+            utils.ErrorPrint("No Products Bought yet!!\n")
+            return
+
+        utils.ColorTextPrint(utils.BLUE, "\nProducts Bought:\n")
+        Products.HeadingPrint(True)
+        utils.BoldPrint ("{0:^15}|\n".format("Quantity"))
+        for prod_id in sorted(self.products_bought_dict):
+            print (Products.products_dict[prod_id], end = "")
+            print ("\033[1;{0}m{1:^15}|\033[0m".format(utils.PURPLE, self.products_bought_dict[prod_id]))
+
+
+
+    def AddCard(self):
+        if True == self.payment.AddCard():
+            with open("customer.file", "wb") as customer_file:
+                pickle.dump(Customer.customer_dict, customer_file)
 
 
     def AddToCart(self):
         while True:
-            id = (int)(input("Enter product id: "))
-            print ("")
+            id = utils.IntegerInputGet("Enter product id: ")
             if id not in Products.products_dict:
                 utils.ErrorPrint ("Product ID: {0} doesn't exist!!\n".format(id))
             else:
@@ -456,16 +565,19 @@ class Customer:
                     with open("customer.file", "wb") as customer_file:
                         pickle.dump(Customer.customer_dict, customer_file)
 
-            r = utils.YesNoGet("\nAdd another product to cart?")
+            r = utils.YesNoGet("\nAdd another product to cart")
 
             if r != "y":
                 break
 
 
     def DeleteFromCart(self):
+        if self.cart.IsEmpty() == True:
+            utils.ErrorPrint("Cart is Empty!!\n")
+            return
+
         while True:
-            id = (int)(input("Enter product id: "))
-            print ("")
+            id = utils.IntegerInputGet("Enter product id: ")
             if id not in Products.products_dict:
                 utils.ErrorPrint ("Product ID: {0} doesn't exist!!\n".format(id))
             else:
@@ -473,7 +585,7 @@ class Customer:
                     with open("customer.file", "wb") as customer_file:
                         pickle.dump(Customer.customer_dict, customer_file)
 
-            r = utils.YesNoGet("\nDelete another product from cart?")
+            r = utils.YesNoGet("\nDelete another product from cart")
 
             if r != "y":
                 break
@@ -486,6 +598,62 @@ class Customer:
 
     Read = staticmethod(Read)
 
+
+
+
+class Payment:
+    def __init__ (self):
+        self.card_number_list = []
+        self.card_type_list = []
+
+
+    def AddCard(self):
+        card_number = utils.IntegerInputGet("Enter Card Number: ")
+        if (card_number in self.card_number_list):
+            ErrorPrint("This card number is already added!!\n")
+            return False
+
+        card_type = input("Enter Card Type (Debit/Credit)? ")
+
+        self.card_number_list.append(card_number)
+        self.card_type_list.append(card_type)
+        utils.SuccessPrint("New Card successfully added!!\n")
+        return True
+
+
+    def ViewPaymentOptions(self):
+        if len(self.card_number_list) == 0:
+            utils.ErrorPrint("Please add a Debit/Credit Card!!\n")
+            return False
+
+        utils.BoldPrint ("\n|{0:^15}|{1:^20}|{2:^15}|\n".format("S. No.", 
+                                                               "Card Number",
+                                                               "Card Type"))
+        num_list = self.card_number_list
+        type_list = self.card_type_list
+
+        for i in range(len(num_list)):
+            utils.ColorTextPrint(utils.PURPLE, "|{0:^15}|{1:^20}|{2:^15}|\n".format(i+1,
+                                                                                   num_list[i],
+                                                                                   type_list[i]))
+        return True
+
+
+    def MakePayment(self):
+        if self.ViewPaymentOptions() == False:
+            return False
+
+        index = utils.IntegerInputGet("\nSelect A Card: ")
+        if index == 0:
+            return False
+
+        while(index < 0 or index > len(self.card_number_list)):
+            utils.ErrorPrint("Invalid Input... please try again!!\n")
+            index = utils.IntegerInputGet("Select A Card: ")
+            if index == 0:
+                return False
+        
+        return True
 
 
 class Guest:

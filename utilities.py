@@ -46,6 +46,21 @@ def FloatingPointInputGet(msg):
     return f
 
 
+def IntegerInputGet(msg):
+    i=0
+    while True:
+        try:
+            ii = input(msg)
+            if ii == "":
+                break
+            i = int(ii)
+            break
+        except ValueError:
+            ErrorPrint("Only Integer values accepted... please try again!!\n")
+    return i
+
+   
+
 def MobileNumberGet(msg):
     n=""
     while True:
