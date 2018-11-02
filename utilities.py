@@ -19,8 +19,11 @@ def ErrorPrint(msg):
 def SuccessPrint(msg):
     print ("\033[0;{0}m{1}\033[0m".format(GREEN, msg), end='')
 
-def ColorTextPrint(color, msg):
-    print ("\033[0;{0}m{1}\033[0m".format(color, msg), end='')
+def ColorTextPrint(color, msg, bold = False):
+    if bold == False:
+        print ("\033[0;{0}m{1}\033[0m".format(color, msg), end='')
+    else:
+        print ("\033[1;{0}m{1}\033[0m".format(color, msg), end='')
 
 def BoldPrint(msg):
     print ("\033[1;{0}m{1}\033[0m".format(BLACK, msg), end='')
